@@ -2,7 +2,10 @@
  * JavaCC template file created by SF JavaCC plugin 1.5.28+ wizard for JavaCC 1.5.0+
  */options{  static = true;}PARSER_BEGIN(Parser)package edu.itsco;
 
-public class Parser{  public static void main(String args []) throws ParseException  {    Parser parser = new Parser(System.in);//introducir datos desde el teclado         }}PARSER_END(Parser)SKIP :{  " "| "\r"| "\t"| "\n"}TOKEN: {  //Definición de palabras reservadas
+public class Parser{  public static void main(String args []) throws ParseException  {    Parser parser = new Parser(System.in);//introducir datos desde el teclado    System.out.println("Bienvenidos al COMPILADOR");
+    System.out.println("-------------------------------------");
+    parser.principal();
+    System.out.println("El programa se Compilo correctamente");  }}PARSER_END(Parser)SKIP :{  " "| "\r"| "\t"| "\n"}TOKEN: {  //Definición de palabras reservadas
   < INICIO: "inicio" >
 | < FIN: "fin" >
 
@@ -22,6 +25,7 @@ public class Parser{  public static void main(String args []) throws ParseExce
 | < SELECCIONA: "selecciona" >
 | < CASO: "caso" >
 | < DEFECTO: "defecto" >
+| < ROMPE: "rompe" >
 
 | < PARA: "para" >
 | < HASTA: "hasta" >
@@ -50,6 +54,8 @@ TOKEN:{ //Area de operadores
 | < OPP: "(" >
 | < OPC: ")" >
 
+| < DP: ":" >
+
 }
 
 
@@ -62,5 +68,129 @@ TOKEN:{ //Area de tokens dinamicos
 | < VALOR_ENTERO: (< digitos >)+ >
 | < VALOR_FLOTANTE: (< digitos >)+ "." (< digitos >)+ >
 | < VALOR_CADENA: "\"" (~["\""])* "\"" >
+
 }
 
+void principal(): { }
+{
+  < INICIO > < IDENTIFICADOR >
+	(	  sentencias()
+	)+
+  < FIN >
+}
+
+void sentencias(): { }
+{
+	declararVariable()
+|   gramaticaEscribir()
+|   gramaticaLeer()
+|   gramaticaAsignacion()
+|   gramaticaSi()
+|   gramaticaSelecciona()
+|   gramaticaPara()
+|   gramaticaMientras()
+|   gramaticaHacer()
+}
+
+void declararVariable(): { }
+{
+	< VAR > <IDENTIFICADOR > tipoDato() [< IGUAL > valor() ]
+}
+
+void tipoDato(): { }
+{
+	< ENTERO > | < CADENA > | < FLOTANTE >
+}
+
+void valor(): { }
+{
+	< VALOR_CADENA >| < VALOR_ENTERO >| < VALOR_FLOTANTE > | < IDENTIFICADOR >
+}
+
+void gramaticaEscribir(): { }
+{
+	< ESCRIBIR > < OPP > valor() (< SUMA > valor() )* < OPC >
+}
+
+void gramaticaLeer(): { }
+{
+	< LEER > <OPP > <IDENTIFICADOR > < OPC >
+}
+
+void gramaticaAsignacion(): { }
+{
+	< IDENTIFICADOR > <IGUAL > operacionSimple()
+}
+
+void operacionSimple():{}
+{
+	( valor() | operacionParentesis())
+	( operandoAritmetico() (valor() | operacionParentesis()) )*
+}
+
+void operacionParentesis():{}
+{
+	< OPP > operacionSimple() < OPC >
+}
+
+void operandoAritmetico():{ }
+{
+	< SUMA > | < RESTA > | < MULTI > | < DIV > | < MOD >
+}
+
+void gramaticaSi():{}
+{
+	< SI > condicion() < ENTONCES >
+	    ( sentencias() )+
+	[<SINO > ( sentencias()) + ]
+	< FIN > <SI >
+}
+
+void condicion():{}
+{
+	condicionSimple() ( opLogico() condicionSimple())*
+}
+
+void condicionSimple():{}
+{
+	valor() opRelacional() valor()
+}
+
+void opLogico():{ }
+{
+    < AND > | < OR >
+}
+
+void opRelacional():{}
+{
+	< MAYOR > [<IGUAL >] | < MENOR > [<IGUAL >] |< IGUAL > <IGUAL > | < NOT > <IGUAL >
+}
+
+void gramaticaSelecciona(): { }
+{
+	< SELECCIONA > <OPP > <IDENTIFICADOR > <OPC >
+	(  < CASO > <VALOR_ENTERO > <DP > sentencias() < ROMPE > )+
+	[<DEFECTO > <DP> sentencias() < ROMPE >]
+	< FIN > <SELECCIONA > 	  
+}
+
+void gramaticaPara(): { }
+{
+	< PARA > <IDENTIFICADOR > <IGUAL > <VALOR_ENTERO > <HASTA > <VALOR_ENTERO >
+	     ( sentencias() ) +
+	< SIGUIENTE >
+}
+
+void gramaticaMientras():{}
+{
+	< MIENTRAS > <OPP > condicion() < OPC >
+	    ( sentencias() )+
+	< FIN > <MIENTRAS >
+}
+
+void gramaticaHacer():{}
+{
+	< HACER >
+	   ( sentencias() ) +
+	< FIN > < MIENTRAS > <OPP > condicion() < OPC >
+}
